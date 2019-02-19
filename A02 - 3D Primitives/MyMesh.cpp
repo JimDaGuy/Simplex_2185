@@ -441,39 +441,51 @@ void MyMesh::GenerateSphere(float a_fRadius, int a_nSubdivisions, vector3 a_v3Co
 	if (a_fRadius < 0.01f)
 		a_fRadius = 0.01f;
 
+	// Make an even number of subdivisions
+	if (a_nSubdivisions % 2 != 0) {
+		a_nSubdivisions++;
+	}
+
 	//Sets minimum and maximum of subdivisions
-	if (a_nSubdivisions < 1)
+	if (a_nSubdivisions < 6)
 	{
-		GenerateCube(a_fRadius * 2.0f, a_v3Color);
-		return;
+		a_nSubdivisions = 6;
+	}
+	else if (a_nSubdivisions > 360) {
+		a_nSubdivisions = 360;
 	}
 
 	Release();
 	Init();
 
-#pragma region NewSphere
-
-#pragma endregion
-
-#pragma region BrokenSphere
-	int verticalDivisions = a_nSubdivisions;
 	//Radians per division constants
 	float radiansPerSubdivision = 2.0f * PI / a_nSubdivisions;
-	float radiansPerVertDivision = PI / verticalDivisions;
 
-	float verticalRadiusIncrement = a_fRadius / (verticalDivisions / 2.0f);
+	// Divide radius for each extending circle
+	float radiusIncrement = a_fRadius / (a_nSubdivisions / 2.0f);
 
 	vector3 topPoint(0.0f, a_fRadius, 0.0f);
 	vector3 bottomPoint(0.0f, -a_fRadius, 0.0f);
 
-	for (int i = 0; i < verticalDivisions / 2; i++) {
+	for (int i = 0; i < a_nSubdivisions / 2; i++) {
 		//Create tris on the top and bottom
 		if (i == 0) {
 			for (int j = 0; j < a_nSubdivisions; j++) {
-				vector3 topTriBL(verticalRadiusIncrement * cos(radiansPerSubdivision * j), a_fRadius * sin((PI / 2) - radiansPerVertDivision), verticalRadiusIncrement * sin(radiansPerSubdivision * j));
-				vector3 topTriBR(verticalRadiusIncrement * cos(radiansPerSubdivision * (j + 1)), a_fRadius * sin((PI / 2) - radiansPerVertDivision), verticalRadiusIncrement * sin(radiansPerSubdivision * (j + 1)));
+				// Start radians and end radians 
+				float startRadians = radiansPerSubdivision * j;
+				float endRadians = radiansPerSubdivision * (j + 1);
+				//Radians for the y coord
+				float vertRadians = (PI / 2) - (radiansPerSubdivision / 2);
+
+				// X = Radius / Half of subdivisions * cos(radians)
+				// Y = Radius * sin(theta)   And theta will be equal to PI/2 - radians
+				// Z = Radius / Half of subdivisions * sin(radians)
+				vector3 topTriBL(radiusIncrement * cos(startRadians), a_fRadius * sin(vertRadians), radiusIncrement * sin(startRadians));
+				vector3 topTriBR(radiusIncrement * cos(endRadians), a_fRadius * sin(vertRadians), radiusIncrement * sin(endRadians));
 
 				AddTri(topTriBR, topTriBL, topPoint);
+
+				// Bottom is same, just flipped vertically
 
 				vector3 botTriBL(topTriBL.x, -topTriBL.y, topTriBL.z);
 				vector3 botTriBR(topTriBR.x, -topTriBR.y, topTriBR.z);
@@ -482,20 +494,23 @@ void MyMesh::GenerateSphere(float a_fRadius, int a_nSubdivisions, vector3 a_v3Co
 			}
 		}
 		else {
+			// Create quads in between top and bottom
 			for (int j = 0; j < a_nSubdivisions; j++) {
-				float innerRadius = i * verticalRadiusIncrement;
-				float outerRadius = (i + 1) * verticalRadiusIncrement;
+				// Inner and outer radii used for x and z calculations
+				float innerRadius = i * radiusIncrement;
+				float outerRadius = (i + 1) * radiusIncrement;
+				// Start radians and end radians 
 				float startRadians = radiansPerSubdivision * j;
 				float endRadians = radiansPerSubdivision * (j + 1);
 
-				// THE PROBLEM IS THAT YOU ARE USING THE WHOLE RADIUS FOR YOUR Y ON EACH HALF
-				// LOOK AT THE SPHERE, IT GENERATES FINE UNTIL HALFWAY BETWEEN THE END AND THE CENTER
+				float vertTopRadians = (PI / 2) - (radiansPerSubdivision * i / 2);
+				float vertBottomRadians = (PI / 2) - (radiansPerSubdivision * (i + 1) / 2);
 
 				//Create quad for top half of the sphere
-				vector3 topLeftQuad1(innerRadius * cos(startRadians), a_fRadius * sin((PI / 2) - (radiansPerVertDivision * i)), innerRadius * sin(startRadians));
-				vector3 topRightQuad1(innerRadius * cos(endRadians), a_fRadius * sin((PI / 2) - (radiansPerVertDivision * i)), innerRadius * sin(endRadians));
-				vector3 bottomLeftQuad1(outerRadius * cos(startRadians), a_fRadius * sin((PI / 2) - (radiansPerVertDivision * (i + 1))), outerRadius * sin(startRadians));
-				vector3 bottomRightQuad1(outerRadius * cos(endRadians), a_fRadius * sin((PI / 2) - (radiansPerVertDivision * (i + 1))), outerRadius * sin(endRadians));
+				vector3 topLeftQuad1(innerRadius * cos(startRadians), a_fRadius * sin(vertTopRadians), innerRadius * sin(startRadians));
+				vector3 topRightQuad1(innerRadius * cos(endRadians), a_fRadius * sin(vertTopRadians), innerRadius * sin(endRadians));
+				vector3 bottomLeftQuad1(outerRadius * cos(startRadians), a_fRadius * sin(vertBottomRadians), outerRadius * sin(startRadians));
+				vector3 bottomRightQuad1(outerRadius * cos(endRadians), a_fRadius * sin(vertBottomRadians), outerRadius * sin(endRadians));
 
 				AddQuad(topLeftQuad1, topRightQuad1, bottomLeftQuad1, bottomRightQuad1);
 
@@ -509,8 +524,6 @@ void MyMesh::GenerateSphere(float a_fRadius, int a_nSubdivisions, vector3 a_v3Co
 			}
 		}
 	}
-	
-#pragma endregion
 
 	// Adding information about color
 	CompleteMesh(a_v3Color);

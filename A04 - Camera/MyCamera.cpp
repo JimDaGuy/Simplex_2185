@@ -153,10 +153,17 @@ void Simplex::MyCamera::CalculateProjectionMatrix(void)
 void MyCamera::MoveForward(float a_fDistance)
 {
 	//The following is just an example and does not take in account the forward vector (AKA view vector)
-	m_v3Position += vector3(0.0f, 0.0f,-a_fDistance);
-	m_v3Target += vector3(0.0f, 0.0f, -a_fDistance);
-	m_v3Above += vector3(0.0f, 0.0f, -a_fDistance);
+	m_v3Position += m_v3Forward * a_fDistance;
+	m_v3Target += m_v3Forward * a_fDistance;
+	m_v3Above += m_v3Forward * a_fDistance;
 }
 
-void MyCamera::MoveVertical(float a_fDistance){}//Needs to be defined
-void MyCamera::MoveSideways(float a_fDistance){}//Needs to be defined
+void MyCamera::MoveVertical(float a_fDistance){
+	// Do the moveForward method for an upward vector
+}//Needs to be defined
+void MyCamera::MoveSideways(float a_fDistance){
+	// Do the moveForward method for a rightward vector
+}//Needs to be defined
+
+// Can use glm rotate(quaternion, vector) to orient three vectors at the same time for rotating the camera
+// AppClassControls.cpp tells you have to calculate the quaternion you need, line like 350

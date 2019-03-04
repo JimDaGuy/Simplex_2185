@@ -333,7 +333,7 @@ void Application::CameraRotation(float a_fSpeed)
 	UINT	MouseX, MouseY;		// Coordinates for the mouse
 	UINT	CenterX, CenterY;	// Coordinates for the center of the screen.
 
-								//Initialize the position of the pointer to the middle of the screen
+	//Initialize the position of the pointer to the middle of the screen
 	CenterX = m_pSystem->GetWindowX() + m_pSystem->GetWindowWidth() / 2;
 	CenterY = m_pSystem->GetWindowY() + m_pSystem->GetWindowHeight() / 2;
 
@@ -350,26 +350,30 @@ void Application::CameraRotation(float a_fSpeed)
 	if (MouseX < CenterX)
 	{
 		fDeltaMouse = static_cast<float>(CenterX - MouseX);
-		fAngleY += fDeltaMouse * a_fSpeed;
+		fAngleX -= fDeltaMouse * a_fSpeed;
 	}
 	else if (MouseX > CenterX)
 	{
 		fDeltaMouse = static_cast<float>(MouseX - CenterX);
-		fAngleY -= fDeltaMouse * a_fSpeed;
+		fAngleX += fDeltaMouse * a_fSpeed;
 	}
 
 	if (MouseY < CenterY)
 	{
 		fDeltaMouse = static_cast<float>(CenterY - MouseY);
-		fAngleX -= fDeltaMouse * a_fSpeed;
+		fAngleY -= fDeltaMouse * a_fSpeed;
 	}
 	else if (MouseY > CenterY)
 	{
 		fDeltaMouse = static_cast<float>(MouseY - CenterY);
-		fAngleX += fDeltaMouse * a_fSpeed;
+		fAngleY += fDeltaMouse * a_fSpeed;
 	}
-	//Change the Yaw and the Pitch of the camera
-	SetCursorPos(CenterX, CenterY);//Position the mouse in the center
+	
+	// Rotate camera by x angle and y angle
+	m_pCamera->RotateCamera(fAngleX, fAngleY);
+
+	//Position the mouse in the center
+	SetCursorPos(CenterX, CenterY);
 }
 //Keyboard
 void Application::ProcessKeyboard(void)
@@ -386,10 +390,24 @@ void Application::ProcessKeyboard(void)
 	if (fMultiplier)
 		fSpeed *= 5.0f;
 
+	// Forward
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::W))
 		m_pCamera->MoveForward(fSpeed);
+	// Back
 	else if (sf::Keyboard::isKeyPressed(sf::Keyboard::S))
 		m_pCamera->MoveForward(-fSpeed);
+	// Right
+	else if (sf::Keyboard::isKeyPressed(sf::Keyboard::D))
+		m_pCamera->MoveSideways(fSpeed);
+	// Left
+	else if (sf::Keyboard::isKeyPressed(sf::Keyboard::A))
+		m_pCamera->MoveSideways(-fSpeed);
+	// Up
+	else if (sf::Keyboard::isKeyPressed(sf::Keyboard::E))
+		m_pCamera->MoveVertical(fSpeed);
+	// Down
+	else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Q))
+		m_pCamera->MoveVertical(-fSpeed);
 #pragma endregion
 }
 //Joystick

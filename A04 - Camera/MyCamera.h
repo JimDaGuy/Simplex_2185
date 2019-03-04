@@ -13,10 +13,9 @@ namespace Simplex
 class MyCamera
 {
 	vector3 m_v3Position = vector3(0.0f, 0.0f, 10.0f); //Where my camera is located
+	
 	vector3 m_v3Target = vector3(0.0f, 0.0f, 0.0f); //What I'm looking at
 	vector3 m_v3Above = vector3(0.0f, 1.0f, 0.0f); //What is above the camera
-
-	vector3 m_v3Forward = vector3(0.0f, 0.0f, -1.0f);
 
 	bool m_bPerspective = true; //perspective view? False is Orthographic
 
@@ -30,6 +29,9 @@ class MyCamera
 
 	matrix4 m_m4View; //View matrix
 	matrix4 m_m4Projection; //Projection Matrix
+
+	float m_xRotAngle = 0.0f;
+	float m_yRotAngle = 90.0f;
 public:
 	/*
 	USAGE: Constructor
@@ -232,6 +234,13 @@ public:
 	OUTPUT: ---
 	*/
 	void MoveSideways(float a_fDistance = 0.1f);
+	
+	/*
+	USAGE: Rotate camera vectors by the given rotation floats
+	ARGUMENTS: float a_xAngle, float a_yAngle
+	OUTPUT: ---
+	*/
+	void RotateCamera(float a_xAngle = 0.0f, float a_yAngle = 0.0f);
 };
 
 } //namespace Simplex

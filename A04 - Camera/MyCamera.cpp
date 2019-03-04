@@ -152,18 +152,81 @@ void Simplex::MyCamera::CalculateProjectionMatrix(void)
 
 void MyCamera::MoveForward(float a_fDistance)
 {
-	//The following is just an example and does not take in account the forward vector (AKA view vector)
-	m_v3Position += m_v3Forward * a_fDistance;
-	m_v3Target += m_v3Forward * a_fDistance;
-	m_v3Above += m_v3Forward * a_fDistance;
+	// Get forward vector from target and position
+	vector3 forward = m_v3Target - m_v3Position; 
+	// Normalize forward vector
+	forward = glm::normalize(forward);
+	// Multiply by distance float
+	forward *= a_fDistance;
+
+	// Add forward distance to target, above, and position
+	m_v3Target += forward;
+	m_v3Above += forward;
+	m_v3Position += forward;
 }
 
 void MyCamera::MoveVertical(float a_fDistance){
-	// Do the moveForward method for an upward vector
-}//Needs to be defined
-void MyCamera::MoveSideways(float a_fDistance){
-	// Do the moveForward method for a rightward vector
-}//Needs to be defined
+	// Get upward vector from above and position
+	vector3 upward = m_v3Above - m_v3Position;
+	//Normalize upward vector
+	upward = glm::normalize(upward);
+	// Multiply by distance float
+	upward *= a_fDistance;
 
-// Can use glm rotate(quaternion, vector) to orient three vectors at the same time for rotating the camera
-// AppClassControls.cpp tells you have to calculate the quaternion you need, line like 350
+	// Add upward distance to target, above, and position
+	m_v3Target += upward;
+	m_v3Above += upward;
+	m_v3Position += upward;
+}
+
+void MyCamera::MoveSideways(float a_fDistance){
+	// Get forward vector from target and position
+	vector3 forward = m_v3Target - m_v3Position;
+	// Normalize forward vector
+	forward = glm::normalize(forward);
+
+	// Get upward vector from above and position
+	vector3 upward = m_v3Above - m_v3Position;
+	//Normalize upward vector
+	upward = glm::normalize(upward);
+
+	// Get rightward vector from cross product of forward and upward vectors
+	vector3 rightward = glm::cross(forward, upward);
+	// Normalize rightward vector
+	rightward = glm::normalize(rightward);
+	// Multiple by distance float
+	rightward *= a_fDistance;
+
+	m_v3Target += rightward;
+	m_v3Above += rightward;
+	m_v3Position += rightward;
+}
+
+void MyCamera::RotateCamera(float a_xAngle, float a_yAngle) {
+	// Increment rotation angles
+	m_xRotAngle += a_xAngle;
+	m_yRotAngle += a_yAngle;
+
+	// Stop camera from looking straight up or down
+	if (m_yRotAngle <= 0.0f)
+		m_yRotAngle = 0.01f; 
+	if (m_yRotAngle >= 180.0f)
+		m_yRotAngle = 179.99f;
+	
+
+	// Initial rotation vector
+	vector3 rotation(0.0f, 0.0f, 0.0f);
+
+	// Create rotation quaternions
+	quaternion xRot = glm::angleAxis(glm::radians(m_xRotAngle), AXIS_Y);
+	quaternion yRot = glm::angleAxis(glm::radians(m_yRotAngle), AXIS_X);
+
+	// Rotate rotation vector
+	rotation += AXIS_X * xRot; 
+	rotation += AXIS_Y * yRot;
+	// Rotate z axis along with x
+	rotation += AXIS_Z * xRot;
+
+	// And local rotation to global position to get target
+	m_v3Target = m_v3Position + rotation;
+}

@@ -85,8 +85,33 @@ void MyRigidBody::SetModelMatrix(matrix4 a_m4ModelMatrix)
 	m_m4ToWorld = a_m4ModelMatrix;
 	
 	//your code goes here---------------------
-	m_v3MinG = m_v3MinL;
-	m_v3MaxG = m_v3MaxL;
+
+	// Map global box points (Mapped to world with m4ToWorld Matrix)
+	vector3 boxPoints[8];
+	boxPoints[0] = m_m4ToWorld * vector4(m_v3MinL.x, m_v3MinL.y, m_v3MinL.z, 1.0f);
+	boxPoints[1] = m_m4ToWorld * vector4(m_v3MaxL.x, m_v3MinL.y, m_v3MinL.z, 1.0f);
+	boxPoints[2] = m_m4ToWorld * vector4(m_v3MinL.x, m_v3MinL.y, m_v3MaxL.z, 1.0f);
+	boxPoints[3] = m_m4ToWorld * vector4(m_v3MaxL.x, m_v3MinL.y, m_v3MinL.z, 1.0f);
+	boxPoints[4] = m_m4ToWorld * vector4(m_v3MinL.x, m_v3MaxL.y, m_v3MinL.z, 1.0f);
+	boxPoints[5] = m_m4ToWorld * vector4(m_v3MaxL.x, m_v3MaxL.y, m_v3MinL.z, 1.0f);
+	boxPoints[6] = m_m4ToWorld * vector4(m_v3MinL.x, m_v3MaxL.y, m_v3MaxL.z, 1.0f);
+	boxPoints[7] = m_m4ToWorld * vector4(m_v3MaxL.x, m_v3MaxL.y, m_v3MaxL.z, 1.0f);
+
+	// Initial max and min points
+	m_v3MaxG = m_v3MinG = boxPoints[0];
+
+	// Change max and min if current point is greater(max) or less(min)
+	for (uint i = 1; i < 8; ++i)
+	{
+		if (m_v3MaxG.x < boxPoints[i].x) m_v3MaxG.x = boxPoints[i].x;
+		else if (m_v3MinG.x > boxPoints[i].x) m_v3MinG.x = boxPoints[i].x;
+
+		if (m_v3MaxG.y < boxPoints[i].y) m_v3MaxG.y = boxPoints[i].y;
+		else if (m_v3MinG.y > boxPoints[i].y) m_v3MinG.y = boxPoints[i].y;
+
+		if (m_v3MaxG.z < boxPoints[i].z) m_v3MaxG.z = boxPoints[i].z;
+		else if (m_v3MinG.z > boxPoints[i].z) m_v3MinG.z = boxPoints[i].z;
+	}
 	//----------------------------------------
 
 	//we calculate the distance between min and max vectors

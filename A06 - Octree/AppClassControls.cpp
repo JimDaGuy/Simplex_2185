@@ -123,6 +123,9 @@ void Application::ProcessKeyReleased(sf::Event a_event)
 		/*
 		if (m_uOctantID >= m_pRoot->GetOctantCount())
 			m_uOctantID = - 1;
+			// I added this part
+		if (m_uOctantID < -1)
+			m_uOctantID = -1;
 		*/
 		break;
 	case sf::Keyboard::Add:

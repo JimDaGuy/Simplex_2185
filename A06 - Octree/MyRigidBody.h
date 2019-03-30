@@ -6,6 +6,7 @@ Date: 2017/06
 #define __MYRIGIDBODY_H_
 
 #include "Simplex\Mesh\Model.h"
+#include "Simplex\Simplex.h"
 
 namespace Simplex
 {

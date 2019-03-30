@@ -2,6 +2,8 @@
 using namespace Simplex;
 void Application::InitVariables(void)
 {
+	m_sProgrammer = "James DiGrazia jtd2401@rit.edu";
+
 	//Set the position and target of the camera
 	m_pCameraMngr->SetPositionTargetAndUpward(
 		vector3(0.0f, 0.0f, 100.0f), //Position
@@ -56,7 +58,8 @@ void Application::Display(void)
 
 	//display octree
 	//m_pRoot->Display();
-	
+	m_pEntityMngr->DisplayOctree();
+
 	// draw a skybox
 	m_pMeshMngr->AddSkyboxToRenderList();
 	

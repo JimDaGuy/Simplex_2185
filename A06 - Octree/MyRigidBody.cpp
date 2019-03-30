@@ -277,19 +277,148 @@ void MyRigidBody::ClearCollidingList(void)
 }
 uint MyRigidBody::SAT(MyRigidBody* const a_pOther)
 {
-	/*
-	Your code goes here instead of this comment;
+	MyRigidBody* obj1 = this;
+	MyRigidBody* obj2 = a_pOther;
+	matrix4 m4Model1 = obj1->GetModelMatrix();
+	matrix4 m4Model2 = obj2->GetModelMatrix();
+	float ra, rb;
+	matrix3 R, AbsR;
 
-	For this method, if there is an axis that separates the two objects
-	then the return will be different than 0; 1 for any separating axis
-	is ok if you are not going for the extra credit, if you could not
-	find a separating axis you need to return 0, there is an enum in
-	Simplex that might help you [eSATResults] feel free to use it.
-	(eSATResults::SAT_NONE has a value of 0)
-	*/
+	// Initialize translation vector by getting the vector from obj1's center in global spaxe to obj2's center in global space
+	vector3 translation = obj2->GetCenterGlobal() - obj1->GetCenterGlobal();
+	// Use dot product to get translation in terms of a's coords
+	translation = vector3(
+		glm::dot(translation, vector3(m4Model1[0])),
+		glm::dot(translation, vector3(m4Model1[1])),
+		glm::dot(translation, vector3(m4Model1[2]))
+	);
 
-	//there is no axis test that separates this two objects
-	return 0;
+	// Compute obj2's rotation matrix in terms of a's coords
+	for (int i = 0; i < 3; i++) {
+		for (int j = 0; j < 3; j++) {
+			R[i][j] = glm::dot(m4Model1[i], m4Model2[j]);
+		}
+	}
+
+	// Calc absolute values of the rotation matrix, add small float to account for near null cross products
+	for (int i = 0; i < 3; i++) {
+		for (int j = 0; j < 3; j++) {
+			AbsR[i][j] = abs(R[i][j]) + 0.001f;
+		}
+	}
+
+	// Test axes L = A0, L = A1, L = A2
+	// Test along x,y, and z axis in terms of a's coords
+	for (int i = 0; i < 3; i++) {
+		ra = obj1->m_v3HalfWidth[i];
+		rb = obj2->m_v3HalfWidth[0] * AbsR[i][0] + obj2->m_v3HalfWidth[1] * AbsR[i][1] + obj2->m_v3HalfWidth[2] * AbsR[i][2];
+
+		// Return matching separation axis
+		if (abs(translation[i]) > ra + rb) {
+			switch (i) {
+			case 0:
+				return eSATResults::SAT_AX;
+			case 1:
+				return eSATResults::SAT_AY;
+			case 2:
+				return eSATResults::SAT_AZ;
+			}
+		}
+	}
+
+	// Test axes L = B0, L = B1, L = B2
+	// Test along x, y, and z axis in terms of b's coords
+	for (int i = 0; i < 3; i++) {
+		ra = obj1->m_v3HalfWidth[0] * AbsR[0][i] + obj1->m_v3HalfWidth[1] * AbsR[1][i] + obj1->m_v3HalfWidth[2] * AbsR[2][i];
+		rb = obj2->m_v3HalfWidth[i];
+
+		// Return matching separation axis
+		if (abs(translation[0] * R[0][i] + translation[1] * R[1][i] + translation[2] * R[2][i]) > ra + rb) {
+			switch (i) {
+			case 0:
+				return eSATResults::SAT_BX;
+			case 1:
+				return eSATResults::SAT_BY;
+			case 2:
+				return eSATResults::SAT_BZ;
+			}
+		}
+	}
+
+	// Test axis L = A0 x B0
+	// Check along cross product of obj1's x axis and obj2's x axis
+	ra = obj1->m_v3HalfWidth[1] * AbsR[2][0] + obj1->m_v3HalfWidth[2] * AbsR[1][0];
+	rb = obj2->m_v3HalfWidth[1] * AbsR[0][2] + obj2->m_v3HalfWidth[2] * AbsR[0][1];
+
+	if (abs(translation[2] * R[1][0] - translation[1] * R[2][0]) > ra + rb)
+		return eSATResults::SAT_AXxBX;
+
+	// Test axis L = A0 x B1
+	// Check along cross product of obj1's x axis and obj2's y axis
+	ra = obj1->m_v3HalfWidth[1] * AbsR[2][1] + obj1->m_v3HalfWidth[2] * AbsR[1][1];
+	rb = obj2->m_v3HalfWidth[0] * AbsR[0][2] + obj2->m_v3HalfWidth[2] * AbsR[0][0];
+
+	if (abs(translation[2] * R[1][1] - translation[1] * R[2][1]) > ra + rb)
+		return eSATResults::SAT_AXxBY;
+
+	// Test axis L = A0 x B2
+	// Check along cross product of obj1's x axis and obj2's z axis
+	ra = obj1->m_v3HalfWidth[1] * AbsR[2][2] + obj1->m_v3HalfWidth[2] * AbsR[1][2];
+	rb = obj2->m_v3HalfWidth[0] * AbsR[0][1] + obj2->m_v3HalfWidth[1] * AbsR[0][0];
+
+	if (abs(translation[2] * R[1][2] - translation[1] * R[2][2]) > ra + rb)
+		return eSATResults::SAT_AXxBZ;
+
+	// Test axis L = A1 x B0
+	// Check along cross product of obj1's y axis and obj2's x axis
+	ra = obj1->m_v3HalfWidth[0] * AbsR[2][0] + obj1->m_v3HalfWidth[2] * AbsR[0][0];
+	rb = obj2->m_v3HalfWidth[1] * AbsR[1][2] + obj2->m_v3HalfWidth[2] * AbsR[1][1];
+
+	if (abs(translation[0] * R[2][0] - translation[2] * R[0][0]) > ra + rb)
+		return eSATResults::SAT_AYxBX;
+
+	// Test axis L = A1 x B1
+	// Check along cross product of obj1's y axis and obj2's y axis
+	ra = obj1->m_v3HalfWidth[0] * AbsR[2][1] + obj1->m_v3HalfWidth[2] * AbsR[0][1];
+	rb = obj2->m_v3HalfWidth[0] * AbsR[1][2] + obj2->m_v3HalfWidth[2] * AbsR[1][0];
+
+	if (abs(translation[0] * R[2][1] - translation[2] * R[0][1]) > ra + rb)
+		return eSATResults::SAT_AYxBY;
+
+	// Test axis L = A1 x B2
+	// Check along cross product of obj1's y axis and obj2's z axis
+	ra = obj1->m_v3HalfWidth[0] * AbsR[2][2] + obj1->m_v3HalfWidth[2] * AbsR[0][2];
+	rb = obj2->m_v3HalfWidth[0] * AbsR[1][1] + obj2->m_v3HalfWidth[1] * AbsR[1][0];
+
+	if (abs(translation[0] * R[2][2] - translation[2] * R[0][2]) > ra + rb)
+		return eSATResults::SAT_AYxBZ;
+
+	// Test axis L = A2 x B0
+	// Check along cross product of obj1's z axis and obj2's x axis
+	ra = obj1->m_v3HalfWidth[0] * AbsR[1][0] + obj1->m_v3HalfWidth[1] * AbsR[0][0];
+	rb = obj2->m_v3HalfWidth[1] * AbsR[2][2] + obj2->m_v3HalfWidth[2] * AbsR[2][1];
+
+	if (abs(translation[1] * R[0][0] - translation[0] * R[1][0]) > ra + rb)
+		return eSATResults::SAT_AZxBX;
+
+	// Test axis L = A2 x B1
+	// Check along cross product of obj1's z axis and obj2's y axis
+	ra = obj1->m_v3HalfWidth[0] * AbsR[1][1] + obj1->m_v3HalfWidth[1] * AbsR[0][1];
+	rb = obj2->m_v3HalfWidth[0] * AbsR[2][2] + obj2->m_v3HalfWidth[2] * AbsR[2][0];
+
+	if (abs(translation[1] * R[0][1] - translation[0] * R[1][1]) > ra + rb)
+		return eSATResults::SAT_AZxBY;
+
+	// Test axis L = A2 x B2
+	// Check along cross product of obj1's z axis and obj2's z axis
+	ra = obj1->m_v3HalfWidth[0] * AbsR[1][2] + obj1->m_v3HalfWidth[1] * AbsR[0][2];
+	rb = obj2->m_v3HalfWidth[0] * AbsR[2][1] + obj2->m_v3HalfWidth[1] * AbsR[2][0];
+
+	if (abs(translation[1] * R[0][2] - translation[0] * R[1][2]) > ra + rb)
+		return eSATResults::SAT_AZxBZ;
+
+	//No separating axis, objects colliding
+	return eSATResults::SAT_NONE;
 }
 bool MyRigidBody::IsColliding(MyRigidBody* const a_pOther)
 {

@@ -32,7 +32,7 @@ void Application::InitVariables(void)
 		}
 	}
 	m_uOctantLevels = 1;
-	m_pEntityMngr->Update();
+	// m_pEntityMngr->Update();
 }
 void Application::Update(void)
 {
@@ -46,7 +46,15 @@ void Application::Update(void)
 	CameraRotation();
 	
 	//Update Entity Manager
-	m_pEntityMngr->Update();
+	// If octree exists, use the octree's collision check
+	// Otherwise use the entity manager's collision check
+	if (m_pRoot == nullptr) {
+		m_pEntityMngr->Update();
+	}
+	else {
+		// Check collisions
+		m_pRoot->CheckCollisions();
+	}
 
 	//Add objects to render list
 	m_pEntityMngr->AddEntityToRenderList(-1, true);
@@ -57,8 +65,9 @@ void Application::Display(void)
 	ClearScreen();
 
 	//display octree
-	//m_pRoot->Display();
-	m_pEntityMngr->DisplayOctree();
+	if (m_pRoot != nullptr) {
+		m_pRoot->Display(C_PURPLE);
+	}
 
 	// draw a skybox
 	m_pMeshMngr->AddSkyboxToRenderList();

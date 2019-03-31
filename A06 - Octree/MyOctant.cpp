@@ -3,15 +3,26 @@
 MyOctant::MyOctant(uint a_level, uint a_subdivisionThreshold, vector3 a_halfWidth, vector3 a_center)
 {
 	level = a_level;
+	subdivisionThreshold = a_subdivisionThreshold;
 	halfWidth = a_halfWidth;
 	center = a_center;
 	maxVec = center + halfWidth;
 	minVec = center - halfWidth;
 	subdivided = false;
+
+	mMeshMngr = MeshManager::GetInstance();
+	mEntityMngr = MyEntityManager::GetInstance();
 }
 
 MyOctant::~MyOctant()
 {
+	for (uint i = 0; i < subdivisions.size(); i++) {
+		SafeDelete(subdivisions[i]);
+	}
+	subdivisions.clear();
+	entityIndexList.clear();
+	mMeshMngr = nullptr;
+	mEntityMngr = nullptr;
 }
 
 // Getters
@@ -35,21 +46,22 @@ bool MyOctant::GetSubdivided()
 {
 	return subdivided;
 }
-std::vector<MyOctant> MyOctant::GetSubdivisions() 
+std::vector<MyOctant*> MyOctant::GetSubdivisions() 
 {
 	return subdivisions;
 }
-std::vector<MyEntity*> MyOctant::GetEntityList()
+std::vector<uint> MyOctant::GetEntityIndexList()
 {
-	return entityList;
+	return entityIndexList;
 }
 uint MyOctant::GetEntityCount()
 {
-	return entityList.size();
+	return entityIndexList.size();
 }
-bool MyOctant::IsCollidingWithEntity(MyEntity * a_entity)
+bool MyOctant::IsCollidingWithEntity(uint a_entityIndex)
 {
-	MyRigidBody* entityRB = a_entity->GetRigidBody();
+	MyEntity* entity = mEntityMngr->GetEntity(a_entityIndex);
+	MyRigidBody* entityRB = entity->GetRigidBody();
 	vector3 entityMinG = entityRB->GetMinGlobal();
 	vector3 entityMaxG = entityRB->GetMaxGlobal();
 
@@ -72,22 +84,25 @@ bool MyOctant::IsCollidingWithEntity(MyEntity * a_entity)
 
 	return colliding;
 }
-void MyOctant::CheckCollision(MyOctant a_octant)
+void MyOctant::CheckCollision()
 {
 	// If the Octant is not a bottom level octant
 	// Call this function on the child octants
 	if (subdivided) {
 		// Iterate through subdivisions of current Octant
 		for (uint i = 0; i < subdivisions.size(); i++) {
-			CheckCollision(subdivisions[i]);
+			subdivisions[i]->CheckCollision();
 		}
 	}
 	// If the Octant is not subdivided,
 	// Check collisions with a child entities in the entity list
 	else {
-		for (uint j = 0; j < entityList.size() - 1; j++) {
-			for (uint k = j + 1; k < entityList.size(); k++) {
-				entityList[j]->IsColliding(entityList[k]);
+		uint entityIndexListSize = entityIndexList.size();
+		for (uint j = 0; j < entityIndexListSize - 1; j++) {
+			for (uint k = j + 1; k < entityIndexListSize; k++) {
+				MyEntity* entity1 = mEntityMngr->GetEntity(j);
+				MyEntity* entity2 = mEntityMngr->GetEntity(k);
+				entity1->IsColliding(entity2);
 			}
 		}
 	}
@@ -97,22 +112,42 @@ void MyOctant::CheckCollision(MyOctant a_octant)
 // Setters
 void MyOctant::SetSubdivided(bool a_subdivision)
 {
+	if (a_subdivision) {
+		entityIndexList.clear();
+	}
 	subdivided = a_subdivision;
 }
-void MyOctant::AddSubdivision(MyOctant a_oct)
+void MyOctant::AddSubdivision(MyOctant* a_oct)
 {
 	subdivisions.push_back(a_oct);
 }
-void MyOctant::AddEntityToList(MyEntity* a_entity) {
-	entityList.push_back(a_entity);
+void MyOctant::AddEntityIndexToList(uint a_entityIndex) {
+	entityIndexList.push_back(a_entityIndex);
 }
-void MyOctant::SetEntityList(MyEntity** a_entityList, uint entityCount) {
-	entityList.clear();
-	for (uint i = 0; i < entityCount; i++) {
-		entityList.push_back(a_entityList[i]);
+void MyOctant::ShowWire(vector3 a_v3Color)
+{
+	matrix4 wireCubeMatrix = IDENTITY_M4;
+	wireCubeMatrix = glm::translate(wireCubeMatrix, center);
+	wireCubeMatrix = glm::scale(wireCubeMatrix, halfWidth * 2);
+	mMeshMngr->AddWireCubeToRenderList(wireCubeMatrix, a_v3Color, RENDER_WIRE);
+
+	for (uint i = 0; i < subdivisions.size(); i++) {
+		subdivisions[i]->ShowWire(a_v3Color);
 	}
 }
-void MyOctant::SetEntityList(std::vector<MyEntity*> a_entityList) {
-	entityList.clear();
-	entityList = a_entityList;
+
+void MyOctant::ShowWire(uint a_octantID, vector3 a_v3Color)
+{
+	if (a_octantID == octantID) {
+		matrix4 wireCubeMatrix = IDENTITY_M4;
+		wireCubeMatrix = glm::translate(wireCubeMatrix, center);
+		wireCubeMatrix = glm::scale(wireCubeMatrix, halfWidth * 2);
+		mMeshMngr->AddWireCubeToRenderList(wireCubeMatrix, a_v3Color, RENDER_WIRE);
+	}
+	else {
+		for (uint i = 0; i < subdivisions.size(); i++) {
+			subdivisions[i]->ShowWire(a_octantID, a_v3Color);
+		}
+	}
+	
 }

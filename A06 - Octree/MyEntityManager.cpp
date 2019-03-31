@@ -6,7 +6,6 @@ void Simplex::MyEntityManager::Init(void)
 {
 	m_uEntityCount = 0;
 	m_mEntityArray = nullptr;
-	m_Octree = MyOctree(1);
 }
 void Simplex::MyEntityManager::Release(void)
 {
@@ -17,10 +16,6 @@ void Simplex::MyEntityManager::Release(void)
 	}
 	m_uEntityCount = 0;
 	m_mEntityArray = nullptr;
-}
-void Simplex::MyEntityManager::DisplayOctree()
-{
-	m_Octree.Display();
 }
 Simplex::MyEntityManager* Simplex::MyEntityManager::GetInstance()
 {
@@ -184,7 +179,7 @@ void Simplex::MyEntityManager::Update(void)
 	{
 		for (uint j = i + 1; j < m_uEntityCount; j++)
 		{
-			// m_mEntityArray[i]->IsColliding(m_mEntityArray[j]);
+			m_mEntityArray[i]->IsColliding(m_mEntityArray[j]);
 		}
 	}
 }

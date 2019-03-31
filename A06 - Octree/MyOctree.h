@@ -1,23 +1,26 @@
 #pragma once
 
 #include "Definitions.h"
-#include "MyEntity.h"
+#include "MyEntityManager.h"
 #include "MyOctant.h"
 using namespace Simplex;
 
 class MyOctree
 {
 public:
-	MyOctree(uint a_octreeLevels = 1, MyEntity** a_entityArray = nullptr, uint a_entityCount = 0);
+	MyOctree(uint a_octreeLevels = 1);
 	~MyOctree();
-	void CreateSubdivisions(MyOctant a_parent);
-	void Display();
+	void Display(vector3 a_v3Color);
+	void Display(uint a_octantID, vector3 a_v3Color);
 	void CheckCollisions();
 private:
+	void CreateSubdivisions(MyOctant* a_parent);
+	MeshManager* mMeshMngr = nullptr;//Mesh Manager singleton
+	MyEntityManager* mEntityMngr = nullptr; //Entity Manager Singleton
 	uint octreeLevels;
 	uint subdivisionThreshold;
 	vector3 octreeHalfWidth;
 	vector3 octreeCenter;
-	MyOctant root;
+	MyOctant* root;
 };
 

@@ -1,6 +1,6 @@
 #pragma once
 #include "Definitions.h"
-#include "MyEntity.h"
+#include "MyEntityManager.h"
 using namespace Simplex;
 
 class MyOctant
@@ -13,17 +13,19 @@ public:
 	vector3 GetHalfWidth();
 	vector3 GetCenter();
 	bool GetSubdivided();
-	std::vector<MyOctant> GetSubdivisions();
-	std::vector<MyEntity*> GetEntityList();
+	std::vector<MyOctant*> GetSubdivisions();
+	std::vector<uint> GetEntityIndexList();
 	uint GetEntityCount();
-	bool IsCollidingWithEntity(MyEntity* a_entity);
-	void CheckCollision(MyOctant a_octant);
+	bool IsCollidingWithEntity(uint a_entityIndex);
+	void CheckCollision();
 	void SetSubdivided(bool a_subdivsion);
-	void AddSubdivision(MyOctant a_oct);
-	void AddEntityToList(MyEntity * a_entity);
-	void SetEntityList(MyEntity** a_entityList, uint entityCount);
-	void SetEntityList(std::vector<MyEntity*> a_entityList);
+	void AddSubdivision(MyOctant* a_oct);
+	void AddEntityIndexToList(uint a_entityIndex);
+	void ShowWire(vector3 a_v3Color);
+	void ShowWire(uint a_octantID, vector3 a_v3Color);
 private:
+	MeshManager* mMeshMngr = nullptr;//Mesh Manager singleton
+	MyEntityManager* mEntityMngr = nullptr; //Entity Manager Singleton
 	// Eventually use this ID to decide which octant to display
 	uint octantID;
 	uint level;
@@ -33,7 +35,7 @@ private:
 	vector3 maxVec;
 	vector3 minVec;
 	bool subdivided;
-	std::vector<MyOctant> subdivisions;
-	std::vector<MyEntity*> entityList;
+	std::vector<MyOctant*> subdivisions;
+	std::vector<uint> entityIndexList;
 };
 

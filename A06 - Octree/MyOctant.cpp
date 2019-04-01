@@ -138,19 +138,3 @@ void MyOctant::ShowWire(vector3 a_v3Color)
 		subdivisions[i]->ShowWire(a_v3Color);
 	}
 }
-
-void MyOctant::ShowWire(uint a_octantID, vector3 a_v3Color)
-{
-	if (a_octantID == octantID) {
-		matrix4 wireCubeMatrix = IDENTITY_M4;
-		wireCubeMatrix = glm::translate(wireCubeMatrix, center);
-		wireCubeMatrix = glm::scale(wireCubeMatrix, halfWidth * 2);
-		mMeshMngr->AddWireCubeToRenderList(wireCubeMatrix, a_v3Color, RENDER_WIRE);
-	}
-	else {
-		for (uint i = 0; i < subdivisions.size(); i++) {
-			subdivisions[i]->ShowWire(a_octantID, a_v3Color);
-		}
-	}
-	
-}

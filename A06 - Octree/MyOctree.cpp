@@ -182,11 +182,6 @@ void MyOctree::Display(vector3 a_v3Color)
 	root->ShowWire(a_v3Color);
 }
 
-void MyOctree::Display(uint a_octantID, vector3 a_v3Color)
-{
-	root->ShowWire(a_octantID, a_v3Color);
-}
-
 void MyOctree::CheckCollisions()
 {
 	root->CheckCollision();

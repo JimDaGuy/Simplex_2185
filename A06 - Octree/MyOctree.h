@@ -11,7 +11,6 @@ public:
 	MyOctree(uint a_octreeLevels = 1);
 	~MyOctree();
 	void Display(vector3 a_v3Color);
-	void Display(uint a_octantID, vector3 a_v3Color);
 	void CheckCollisions();
 private:
 	void CreateSubdivisions(MyOctant* a_parent);

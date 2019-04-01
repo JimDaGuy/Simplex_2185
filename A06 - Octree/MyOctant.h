@@ -22,12 +22,10 @@ public:
 	void AddSubdivision(MyOctant* a_oct);
 	void AddEntityIndexToList(uint a_entityIndex);
 	void ShowWire(vector3 a_v3Color);
-	void ShowWire(uint a_octantID, vector3 a_v3Color);
 private:
 	MeshManager* mMeshMngr = nullptr;//Mesh Manager singleton
 	MyEntityManager* mEntityMngr = nullptr; //Entity Manager Singleton
 	// Eventually use this ID to decide which octant to display
-	uint octantID;
 	uint level;
 	uint subdivisionThreshold;
 	vector3 halfWidth;

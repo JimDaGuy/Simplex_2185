@@ -32,8 +32,8 @@ void Application::InitVariables(void)
 			m_pEntityMngr->SetModelMatrix(m4Position);
 		}
 	}
-	m_uOctantLevels = 1;
-	// m_pEntityMngr->Update();
+	m_uOctantLevels = 0;
+	m_uOctantID = 1;
 }
 void Application::Update(void)
 {
@@ -69,7 +69,7 @@ void Application::Display(void)
 	ClearScreen();
 
 	//display octree
-	if (m_pRoot != nullptr) {
+	if (m_pRoot != nullptr && m_uOctantID == 1) {
 		m_pRoot->Display(C_ORANGE);
 	}
 

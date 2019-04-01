@@ -88,7 +88,8 @@ void MyOctant::CheckCollision()
 {
 	// If the Octant is not a bottom level octant
 	// Call this function on the child octants
-	if (subdivided) {
+	if (subdivisions.size() > 0) {
+		// std::cout << "Lvl: " << level << " SD: true NumSubdivisions:" << subdivisions.size() << std::endl;
 		// Iterate through subdivisions of current Octant
 		for (uint i = 0; i < subdivisions.size(); i++) {
 			subdivisions[i]->CheckCollision();
@@ -97,11 +98,13 @@ void MyOctant::CheckCollision()
 	// If the Octant is not subdivided,
 	// Check collisions with a child entities in the entity list
 	else {
+		// std::cout << "Lvl: " << level << " SD: false NumEntities:" << entityIndexList.size() << std::endl;
 		uint entityIndexListSize = entityIndexList.size();
+		if (entityIndexListSize < 2) { return; }
 		for (uint j = 0; j < entityIndexListSize - 1; j++) {
 			for (uint k = j + 1; k < entityIndexListSize; k++) {
-				MyEntity* entity1 = mEntityMngr->GetEntity(j);
-				MyEntity* entity2 = mEntityMngr->GetEntity(k);
+				MyEntity* entity1 = mEntityMngr->GetEntity(entityIndexList[j]);
+				MyEntity* entity2 = mEntityMngr->GetEntity(entityIndexList[k]);
 				entity1->IsColliding(entity2);
 			}
 		}

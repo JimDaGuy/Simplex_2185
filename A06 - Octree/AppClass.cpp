@@ -1,5 +1,6 @@
 #include "AppClass.h"
 using namespace Simplex;
+using namespace std;
 void Application::InitVariables(void)
 {
 	m_sProgrammer = "James DiGrazia jtd2401@rit.edu";
@@ -48,6 +49,9 @@ void Application::Update(void)
 	//Update Entity Manager
 	// If octree exists, use the octree's collision check
 	// Otherwise use the entity manager's collision check
+	m_pEntityMngr->ClearCollisions();
+
+
 	if (m_pRoot == nullptr) {
 		m_pEntityMngr->Update();
 	}
@@ -66,7 +70,7 @@ void Application::Display(void)
 
 	//display octree
 	if (m_pRoot != nullptr) {
-		m_pRoot->Display(C_PURPLE);
+		m_pRoot->Display(C_ORANGE);
 	}
 
 	// draw a skybox

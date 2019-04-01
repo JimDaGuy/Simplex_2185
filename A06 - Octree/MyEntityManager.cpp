@@ -165,15 +165,16 @@ Simplex::MyEntityManager::MyEntityManager(MyEntityManager const& a_pOther){ }
 Simplex::MyEntityManager& Simplex::MyEntityManager::operator=(MyEntityManager const& a_pOther) { return *this; }
 Simplex::MyEntityManager::~MyEntityManager(){Release();};
 // other methods
-void Simplex::MyEntityManager::Update(void)
+void Simplex::MyEntityManager::ClearCollisions()
 {
 	//Clear all collisions
 	for (uint i = 0; i < m_uEntityCount; i++)
 	{
 		m_mEntityArray[i]->ClearCollisionList();
 	}
-
-
+}
+void Simplex::MyEntityManager::Update(void)
+{
 	//check collisions
 	for (uint i = 0; i < m_uEntityCount - 1; i++)
 	{
